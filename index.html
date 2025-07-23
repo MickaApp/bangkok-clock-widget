@@ -20,8 +20,8 @@
       padding: 0;
       width: 100%;
       height: 100%;
-      overflow: hidden; /* This removes the scrollbars */
-      background: transparent;
+      overflow: hidden;
+      background: transparent !important; /* Fully transparent for any Notion theme */
       font-family: "Segoe UI", Arial, sans-serif;
     }
     
@@ -31,6 +31,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      background: transparent !important; /* Ensure root is also transparent */
     }
     
     .theme-button.purple { background: linear-gradient(135deg, rgba(104,27,187,0.9), rgba(147,51,234,0.9)); }
@@ -180,7 +181,7 @@
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "transparent",
+        background: "transparent", // Fully transparent container
         padding: "20px",
         boxSizing: "border-box"
       };
@@ -225,7 +226,7 @@
         color: "#fff"
       };
 
-      // Settings button with glow effect - top right, no tooltip
+      // Settings button with glow effect - top right
       const settingsButtonStyle = {
         position: "absolute",
         top: "12px",
@@ -234,27 +235,44 @@
         background: "none",
         border: "none",
         cursor: "pointer",
-        transition: "all 0.3s ease"
+        transition: "all 0.3s ease",
+        zIndex: "20"
       };
 
+      // Settings panel as overlay - centered on top of the clock
       const settingsPanelStyle = {
         position: "absolute",
-        top: "0",
-        left: "100%",
-        marginLeft: "16px",
-        width: "288px",
+        top: "50%",
+        left: "50%",
+        transform: showSettings ? "translate(-50%, -50%) scale(1)" : "translate(-50%, -50%) scale(0.95)",
+        width: "280px",
         background: "white",
         borderRadius: "18px",
         boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
         border: "1px solid #e5e7eb",
         padding: "24px",
         transition: "all 0.3s ease-out",
-        zIndex: "10",
+        zIndex: "30",
         opacity: showSettings ? "1" : "0",
-        transform: showSettings ? "translateX(0)" : "translateX(16px)",
         visibility: showSettings ? "visible" : "hidden",
-        maxHeight: "400px",
+        maxHeight: "380px",
         overflowY: "auto"
+      };
+
+      // Backdrop overlay
+      const backdropStyle = {
+        position: "absolute",
+        top: "0",
+        left: "0",
+        right: "0",
+        bottom: "0",
+        background: "rgba(0, 0, 0, 0.3)",
+        backdropFilter: "blur(4px)",
+        borderRadius: "18px",
+        zIndex: "25",
+        opacity: showSettings ? "1" : "0",
+        visibility: showSettings ? "visible" : "hidden",
+        transition: "all 0.3s ease-out"
       };
 
       return React.createElement("div", { style: containerStyle },
@@ -298,229 +316,227 @@
             ),
             React.createElement("div", { style: timeStyle }, time),
             React.createElement("div", { style: locationStyle }, currentTimezone?.label || "Bangkok Time"),
-            React.createElement("div", { style: dateStyle }, date)
-          ),
-          React.createElement("div", { style: settingsPanelStyle },
-            React.createElement("div", {
-              style: {
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "24px"
-              }
-            },
-              React.createElement("h3", {
-                style: {
-                  fontSize: "1.125rem",
-                  fontWeight: "600",
-                  color: "#1f2937",
-                  margin: "0"
-                }
-              }, "Settings"),
-              React.createElement("button", {
-                onClick: () => setShowSettings(false),
-                style: {
-                  width: "24px",
-                  height: "24px",
-                  borderRadius: "50%",
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center"
-                },
-                "aria-label": "Close settings"
-              },
-                React.createElement("svg", {
-                  style: { width: "16px", height: "16px", color: "#6b7280" },
-                  fill: "none",
-                  stroke: "currentColor",
-                  viewBox: "0 0 24 24"
-                },
-                  React.createElement("path", {
-                    strokeLinecap: "round",
-                    strokeLinejoin: "round",
-                    strokeWidth: 2,
-                    d: "M6 18L18 6M6 6l12 12"
-                  })
-                )
-              )
-            ),
-            // Location Selector
-            React.createElement("div", { style: { marginBottom: "24px" } },
-              React.createElement("label", {
-                style: {
-                  display: "block",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#374151",
-                  marginBottom: "12px"
-                }
-              }, "Location"),
-              React.createElement("select", {
-                value: selectedTimezone,
-                onChange: (e) => changeTimezone(e.target.value),
-                style: {
-                  width: "100%",
-                  padding: "8px 12px",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "8px",
-                  fontSize: "0.875rem",
-                  outline: "none"
-                }
-              },
-                TIMEZONES.map(tz =>
-                  React.createElement("option", {
-                    key: tz.name,
-                    value: tz.name
-                  }, `${tz.name} (UTC${tz.offset >= 0 ? "+" : ""}${tz.offset})`)
-                )
-              )
-            ),
-            // Time Format Toggle
-            React.createElement("div", { style: { marginBottom: "24px" } },
-              React.createElement("label", {
-                style: {
-                  display: "block",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#374151",
-                  marginBottom: "12px"
-                }
-              }, "Time Format"),
+            React.createElement("div", { style: dateStyle }, date),
+            
+            // Backdrop overlay
+            showSettings && React.createElement("div", {
+              style: backdropStyle,
+              onClick: () => setShowSettings(false)
+            }),
+            
+            // Settings panel as centered overlay
+            React.createElement("div", { style: settingsPanelStyle },
               React.createElement("div", {
                 style: {
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center",
-                  gap: "12px"
+                  justifyContent: "space-between",
+                  marginBottom: "20px"
                 }
               },
-                React.createElement("span", {
+                React.createElement("h3", {
                   style: {
-                    fontSize: "0.875rem",
-                    fontWeight: "500",
-                    color: timeFormat === "24" ? "#111827" : "#9ca3af"
+                    fontSize: "1.125rem",
+                    fontWeight: "600",
+                    color: "#1f2937",
+                    margin: "0"
                   }
-                }, "24H"),
+                }, "Settings"),
                 React.createElement("button", {
-                  onClick: toggleTimeFormat,
+                  onClick: () => setShowSettings(false),
                   style: {
-                    position: "relative",
-                    display: "inline-flex",
+                    width: "24px",
                     height: "24px",
-                    width: "44px",
-                    alignItems: "center",
-                    borderRadius: "9999px",
+                    borderRadius: "50%",
                     border: "none",
+                    background: "none",
                     cursor: "pointer",
-                    background: timeFormat === "12" ? "#2563eb" : "#d1d5db"
-                  }
-                },
-                  React.createElement("span", {
-                    style: {
-                      display: "inline-block",
-                      height: "16px",
-                      width: "16px",
-                      borderRadius: "50%",
-                      background: "white",
-                      transition: "transform 0.2s ease-in-out",
-                      transform: timeFormat === "12" ? "translateX(24px)" : "translateX(4px)"
-                    }
-                  })
-                ),
-                React.createElement("span", {
-                  style: {
-                    fontSize: "0.875rem",
-                    fontWeight: "500",
-                    color: timeFormat === "12" ? "#111827" : "#9ca3af"
-                  }
-                }, "12H")
-              )
-            ),
-            // Theme Selector
-            React.createElement("div", null,
-              React.createElement("label", {
-                style: {
-                  display: "block",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#374151",
-                  marginBottom: "12px"
-                }
-              }, "Color Theme"),
-              React.createElement("div", {
-                style: {
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: "12px"
-                }
-              },
-                ["purple", "blue", "green", "orange", "pink", "teal", "dark", "gold"].map(colorTheme =>
-                  React.createElement("button", {
-                    key: colorTheme,
-                    onClick: () => changeTheme(colorTheme),
-                    className: `theme-button ${colorTheme}`,
-                    style: {
-                      position: "relative",
-                      width: "40px",
-                      height: "40px",
-                      borderRadius: "50%",
-                      cursor: "pointer",
-                      border: theme === colorTheme ? "2px solid #9ca3af" : "2px solid #e5e7eb",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    },
-                    "aria-label": `${colorTheme} theme`
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
                   },
-                    theme === colorTheme && React.createElement("svg", {
-                      style: { width: "16px", height: "16px", color: "white" },
-                      fill: "currentColor",
-                      viewBox: "0 0 20 20"
-                    },
-                      React.createElement("path", {
-                        fillRule: "evenodd",
-                        d: "M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z",
-                        clipRule: "evenodd"
-                      })
-                    )
+                  "aria-label": "Close settings"
+                },
+                  React.createElement("svg", {
+                    style: { width: "16px", height: "16px", color: "#6b7280" },
+                    fill: "none",
+                    stroke: "currentColor",
+                    viewBox: "0 0 24 24"
+                  },
+                    React.createElement("path", {
+                      strokeLinecap: "round",
+                      strokeLinejoin: "round",
+                      strokeWidth: 2,
+                      d: "M6 18L18 6M6 6l12 12"
+                    })
                   )
                 )
               ),
-              React.createElement("div", {
-                style: {
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: "12px",
-                  marginTop: "8px"
-                }
-              },
-                ["purple", "blue", "green", "orange", "pink", "teal", "dark", "gold"].map(colorTheme =>
+              // Location Selector
+              React.createElement("div", { style: { marginBottom: "20px" } },
+                React.createElement("label", {
+                  style: {
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "8px"
+                  }
+                }, "Location"),
+                React.createElement("select", {
+                  value: selectedTimezone,
+                  onChange: (e) => changeTimezone(e.target.value),
+                  style: {
+                    width: "100%",
+                    padding: "8px 12px",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                    fontSize: "0.875rem",
+                    outline: "none"
+                  }
+                },
+                  TIMEZONES.map(tz =>
+                    React.createElement("option", {
+                      key: tz.name,
+                      value: tz.name
+                    }, `${tz.name} (UTC${tz.offset >= 0 ? "+" : ""}${tz.offset})`)
+                  )
+                )
+              ),
+              // Time Format Toggle
+              React.createElement("div", { style: { marginBottom: "20px" } },
+                React.createElement("label", {
+                  style: {
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "8px"
+                  }
+                }, "Time Format"),
+                React.createElement("div", {
+                  style: {
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "12px"
+                  }
+                },
                   React.createElement("span", {
-                    key: `${colorTheme}-label`,
                     style: {
-                      fontSize: "0.75rem",
-                      color: "#6b7280",
-                      textAlign: "center",
-                      textTransform: "capitalize"
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      color: timeFormat === "24" ? "#111827" : "#9ca3af"
                     }
-                  }, colorTheme)
+                  }, "24H"),
+                  React.createElement("button", {
+                    onClick: toggleTimeFormat,
+                    style: {
+                      position: "relative",
+                      display: "inline-flex",
+                      height: "24px",
+                      width: "44px",
+                      alignItems: "center",
+                      borderRadius: "9999px",
+                      border: "none",
+                      cursor: "pointer",
+                      background: timeFormat === "12" ? "#2563eb" : "#d1d5db"
+                    }
+                  },
+                    React.createElement("span", {
+                      style: {
+                        display: "inline-block",
+                        height: "16px",
+                        width: "16px",
+                        borderRadius: "50%",
+                        background: "white",
+                        transition: "transform 0.2s ease-in-out",
+                        transform: timeFormat === "12" ? "translateX(24px)" : "translateX(4px)"
+                      }
+                    })
+                  ),
+                  React.createElement("span", {
+                    style: {
+                      fontSize: "0.875rem",
+                      fontWeight: "500",
+                      color: timeFormat === "12" ? "#111827" : "#9ca3af"
+                    }
+                  }, "12H")
+                )
+              ),
+              // Theme Selector
+              React.createElement("div", null,
+                React.createElement("label", {
+                  style: {
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "8px"
+                  }
+                }, "Color Theme"),
+                React.createElement("div", {
+                  style: {
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: "10px"
+                  }
+                },
+                  ["purple", "blue", "green", "orange", "pink", "teal", "dark", "gold"].map(colorTheme =>
+                    React.createElement("button", {
+                      key: colorTheme,
+                      onClick: () => changeTheme(colorTheme),
+                      className: `theme-button ${colorTheme}`,
+                      style: {
+                        position: "relative",
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                        border: theme === colorTheme ? "2px solid #9ca3af" : "2px solid #e5e7eb",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center"
+                      },
+                      "aria-label": `${colorTheme} theme`
+                    },
+                      theme === colorTheme && React.createElement("svg", {
+                        style: { width: "14px", height: "14px", color: "white" },
+                        fill: "currentColor",
+                        viewBox: "0 0 20 20"
+                      },
+                        React.createElement("path", {
+                          fillRule: "evenodd",
+                          d: "M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z",
+                          clipRule: "evenodd"
+                        })
+                      )
+                    )
+                  )
+                ),
+                React.createElement("div", {
+                  style: {
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: "10px",
+                    marginTop: "6px"
+                  }
+                },
+                  ["purple", "blue", "green", "orange", "pink", "teal", "dark", "gold"].map(colorTheme =>
+                    React.createElement("span", {
+                      key: `${colorTheme}-label`,
+                      style: {
+                        fontSize: "0.7rem",
+                        color: "#6b7280",
+                        textAlign: "center",
+                        textTransform: "capitalize"
+                      }
+                    }, colorTheme)
+                  )
                 )
               )
             )
-          ),
-          showSettings && React.createElement("div", {
-            style: {
-              position: "fixed",
-              inset: "0",
-              background: "rgba(0, 0, 0, 0.1)",
-              backdropFilter: "blur(2px)",
-              zIndex: "0"
-            },
-            onClick: () => setShowSettings(false)
-          })
+          )
         )
       );
     }
