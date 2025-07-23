@@ -173,7 +173,6 @@
 
       const currentTimezone = TIMEZONES.find((tz) => tz.name === selectedTimezone);
 
-      // Updated container style - removed min-height: 100vh
       const containerStyle = {
         width: "100%",
         height: "100%",
@@ -182,7 +181,7 @@
         alignItems: "center",
         justifyContent: "center",
         background: "transparent",
-        padding: "20px", // Add some padding to prevent edge clipping
+        padding: "20px",
         boxSizing: "border-box"
       };
 
@@ -226,9 +225,10 @@
         color: "#fff"
       };
 
+      // Updated settings button position - moved to top-right
       const settingsButtonStyle = {
         position: "absolute",
-        bottom: "12px",
+        top: "12px",
         right: "12px",
         padding: "4px",
         background: "none",
@@ -253,8 +253,8 @@
         opacity: showSettings ? "1" : "0",
         transform: showSettings ? "translateX(0)" : "translateX(16px)",
         visibility: showSettings ? "visible" : "hidden",
-        maxHeight: "400px", // Prevent settings panel from being too tall
-        overflowY: "auto" // Allow scrolling within settings if needed
+        maxHeight: "400px",
+        overflowY: "auto"
       };
 
       return React.createElement("div", { style: containerStyle },
@@ -263,9 +263,7 @@
             className: `digital-clock-container ${theme}`,
             style: clockContainerStyle
           },
-            React.createElement("div", { style: timeStyle }, time),
-            React.createElement("div", { style: locationStyle }, currentTimezone?.label || "Bangkok Time"),
-            React.createElement("div", { style: dateStyle }, date),
+            // Settings Button - Now in top-right corner
             React.createElement("button", {
               onClick: () => setShowSettings(!showSettings),
               style: settingsButtonStyle,
@@ -296,7 +294,10 @@
                   d: "M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                 })
               )
-            )
+            ),
+            React.createElement("div", { style: timeStyle }, time),
+            React.createElement("div", { style: locationStyle }, currentTimezone?.label || "Bangkok Time"),
+            React.createElement("div", { style: dateStyle }, date)
           ),
           React.createElement("div", { style: settingsPanelStyle },
             React.createElement("div", {
